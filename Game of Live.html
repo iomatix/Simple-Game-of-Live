@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="canvas" width="900" height="900">
+<script src="https://unpkg.com/mathjs@9.1.0/lib/browser/math.js"></script>
+<script>
+var canvas = document.getElementById('canvas');
+
+class Coord{
+	x = 0;
+	y = 0;
+	constructor(arr) {
+		this.x = arr[0];
+		this.y = arr[1];
+	}
+	get x(){
+		return this.x;
+	}
+	get y(){
+		return this.y;
+	}
+}
+
+class bazaKomorkowa{
+	arr = [];
+	constructor(){
+
+	}
+	
+	get arr(){
+		return this.arr
+	}
+	addKomorka(kom){
+		this.arr.push(kom);
+	}
+	remKomorka(index){
+		this.arr.splice(index,1);
+	}
+}
+
+
+class Komorka {
+	generacja = 0;
+	coords = new Coord([0,0]);
+	lifespan = 0;
+	constructor(coords) {
+		this.coords = coords;
+		this.lifespan = minlifespan + Math.floor((maxlifespan - minlifespan) * Math.random());
+	}
+	get generacja(){
+		return this.generacja
+	}
+	get coords(){
+		return this.coords
+	}
+	nextStep(){
+		this.generacja = this.generacja + 1;
+	}
+}
+//ZASADY
+var minlifespan = 30; 
+var maxlifespan = 255;
+var valCrit1 = 2;
+var valCrit2 = 3;
+// Deklaracja Klas
+var bazaK = new bazaKomorkowa();
+// Render
+var sizeK = 8;
+var space_sizeK = 3;
+var size_x = 1920;
+var size_y = 1080;
+
+//logika
+function isAlive(kom){
+	if(kom.generacja > kom.lifespan) return false;
+	return true;
+}
+
+function isCollidingK(kom1,kom2){
+	let len = sizeK+space_sizeK;
+	if(kom1.coords.x == kom2.coords.x && kom1.coords.y == kom2.coords.y) return false;
+	if(kom1.coords.x < kom2.coords.x+len && kom1.coords.x+len > kom2.coords.x && kom1.coords.y < kom2.coords.y+len && kom1.coords.y+len > kom2.coords.y )return true;
+	return false;
+}
+
+function getNumOfColliders(kom,bazaKom)
+{
+	let ci = 0;
+	bazaKom.arr.forEach(function(v,i){
+		if(isCollidingK(kom,v)) ci++;
+	});
+	return ci;
+}
+
+///
+var var_game_loop; 
+const context = canvas.getContext('2d');
+function gameInit(){
+	console.log("Game Initialized!");
+	canvas.width  = window.size_x;
+	canvas.height = window.size_y;
+	GAME_LOOP();
+
+}
+function gameStop(){
+
+	STOP_LOOP();
+}
+
+function Render(){
+	context.clearRect(0,0,canvas.width, canvas.height);
+	bazaK.arr.forEach(function(v,i){ 
+		context.fillStyle = "rgba("+(v.generacja)+","+(255-v.generacja)+","+(v.generacja/5)+","+(255/255)+")";
+		context.fillRect( v.coords.x, v.coords.y, sizeK, sizeK );
+		v.nextStep();
+		if(!isAlive(v) && getNumOfColliders(v,bazaK) != valCrit1 && getNumOfColliders(v,bazaK) != valCrit2) bazaK.remKomorka(i);
+		else if(getNumOfColliders(v,bazaK) == valCrit2){
+			+ Math.floor((maxlifespan - minlifespan) * Math.random());
+			
+			let ranCoordX = (v.coords.x-sizeK-space_sizeK) + Math.floor(((v.coords.x+sizeK+space_sizeK) - (v.coords.x-sizeK-space_sizeK)) * Math.random());
+			let ranCoordY = (v.coords.y-sizeK-space_sizeK) + Math.floor(((v.coords.y+sizeK+space_sizeK) - (v.coords.y-sizeK-space_sizeK)) * Math.random());
+			bazaK.addKomorka(new Komorka(new Coord([ranCoordX,ranCoordY])));
+		}
+	});
+}
+
+function GAME_LOOP()
+{
+
+	var_game_loop = window.setInterval(Render,"30");
+
+}
+function STOP_LOOP()
+{
+	clearInterval(var_game_loop);
+}
+
+// Obsługa urządzeń we/wy
+function getCursorPosition(canvas, event) {
+	const rect = canvas.getBoundingClientRect();
+	const x = event.clientX - rect.left;
+	const y = event.clientY - rect.top;
+	return [x,y];
+}
+canvas.addEventListener('mousedown', function(e) {
+	bazaK.addKomorka(new Komorka(new Coord(getCursorPosition(canvas, e))));
+})
+
+//
+//START
+gameInit();
+
+
+</script>
+</body>
+</html>
